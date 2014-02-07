@@ -1,10 +1,10 @@
 Name: hwdata
 Summary: Hardware identification and configuration data
-Version: 0.230
+Version: 0.234
 Release: 1%{?dist}
 License: GPLv2+
 Group: System Environment/Base
-Source: hwdata-%{version}.tar.bz2
+Source: hwdata-%{version}-%{release}.tar.bz2
 URL:    http://git.fedorahosted.org/git/hwdata.git
 BuildArch: noarch
 Conflicts: Xconfigurator, system-config-display < 1.0.31, pcmcia-cs, kudzu < 1.2.0
@@ -37,6 +37,30 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/%{name}/*
 
 %changelog
+* Mon Aug 08 2011 Karsten Hopp <karsten@redhat.com> 0.233-7.3
+- update pci.ids, usb. ids
+
+* Mon May 02 2011 Karsten Hopp <karsten@redhat.com> 0.233-7.2
+- update pci.ids with a fix for QLogic Infiniband adapter
+
+* Wed Apr 27 2011 Karsten Hopp <karsten@redhat.com> 0.233-7.1
+- update to latest pci.ids, usb.ids
+
+* Fri Jan 28 2011 Karsten Hopp <karsten@redhat.com> 0.233-7
+- bump release
+- update oui.txt URL
+- fix tarball name in spec file
+- update usb.ids, out.txt and pci.ids
+
+* Wed Aug 25 2010 Karsten Hopp <karsten@redhat.com> 0.233-1
+- update usb.ids, out.txt and pci.ids
+
+* Thu Aug 05 2010 Karsten Hopp <karsten@redhat.com> 0.232-1
+- update usb.ids, out.txt and pci.ids (#550020, #611860)
+- fix incorrect syntax doc/comment in blacklist.conf (Ville Skyttä, #532802)
+- add Acer B243HL and BenQ G2420HDBL (Ville Skyttä, #590787)
+- add HP LP2475w and Samsung 2494HM (Ville Skyttä, #595059)
+
 * Tue May 25 2010 Phil Knirsch <pknirsch@redhat.com> 0.230-1
 - update usb.ids, out.txt and pci.ids
 - Resolves: #584788
@@ -47,6 +71,9 @@ rm -rf $RPM_BUILD_ROOT
 * Wed Mar 17 2010 Phil Knirsch <pknirsch@redhat.com> 0.228-1
 - Blacklist chsc_sch for s390x
 - Resolves: #563228
+
+* Tue Feb 23 2010 Dave Airlie <airlied@redhat.com> 0.227-1
+- add viafb to blacklist
 
 * Mon Feb 22 2010 Karsten Hopp <karsten@redhat.com> 0.227-1
 - update usb.ids, pci.ids, oui.txt

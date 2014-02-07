@@ -1,6 +1,6 @@
 NAME=$(shell awk '/Name:/ { print $$2 }' hwdata.spec)
 VERSION=$(shell awk '/Version:/ { print $$2 }' hwdata.spec)
-RELEASE=$(shell awk '/Release:/ { a=$$2; sub("%.*","",a); print a }' hwdata.spec)
+RELEASE=$(shell rpm -q --specfile --qf "%{release}" hwdata.spec)
 SOURCEDIR := $(shell pwd)
 
 prefix=$(DESTDIR)/usr
@@ -21,7 +21,7 @@ CVSTAG = $(NAME)-r$(subst .,-,$(VERSION))
 
 FILES = MonitorsDB pci.ids upgradelist usb.ids videodrivers oui.txt pnp.ids
 
-.PHONY: all install tag force-tag check create-archive archive srpm-x clean clog new-pci-ids new-usb-ids
+.PHONY: all install tag force-tag check commit create-archive archive srpm-x clean clog new-pci-ids new-usb-ids
 
 all: 
 
@@ -33,6 +33,9 @@ install:
 	mkdir -p -m 755 $(datadir)/$(NAME)/videoaliases
 	mkdir -p -m 755 $(sysconfdir)/modprobe.d
 	install -m 644 blacklist.conf $(sysconfdir)/modprobe.d
+
+commit:
+	git commit -a ||:
 
 tag:
 	@git tag -a -m "Tag as $(NAME)-$(VERSION)-$(RELEASE)" $(NAME)-$(VERSION)-$(RELEASE)
@@ -49,25 +52,27 @@ changelog:
 check:
 	@[ -x /sbin/lspci ] && /sbin/lspci -i pci.ids > /dev/null || { echo "FAILURE: /sbin/lspci -i pci.ids"; exit 1; } && echo "OK: /sbin/lspci -i pci.ids"
 	@./check-pci-ids.py || { echo "FAILURE: ./check-pci-ids.py"; exit 1; } && echo "OK: ./check-pci-ids.py"
+	@echo -n "CHECK date of pci.ids: "; grep "Date:" pci.ids | cut -d ' ' -f 5
+	@echo -n "CHECK date of usb.ids: "; grep "Date:" usb.ids | cut -d ' ' -f 6
 	@: videodrivers is tab-separated
 	@[ `grep -vc '	' videodrivers` -eq 0 ] || { echo "FAILURE: videodrivers not TAB separated"; exit 1; } && echo "OK: videodrivers"
 
 create-archive:
-	@rm -rf $(NAME)-$(VERSION) $(NAME)-$(VERSION).tar*  2>/dev/null
+	@rm -rf $(NAME)-$(VERSION) $(NAME)-$(VERSION)-$(RELEASE).tar*  2>/dev/null
 	@make changelog
-	@git archive --format=tar --prefix=$(NAME)-$(VERSION)/ HEAD > $(NAME)-$(VERSION).tar
+	@git archive --format=tar --prefix=$(NAME)-$(VERSION)/ HEAD > $(NAME)-$(VERSION)-$(RELEASE).tar
 	@mkdir $(NAME)-$(VERSION)
 	@cp ChangeLog $(NAME)-$(VERSION)/
-	@tar --append -f $(NAME)-$(VERSION).tar $(NAME)-$(VERSION)
-	@bzip2 -f $(NAME)-$(VERSION).tar
+	@tar --append -f $(NAME)-$(VERSION)-$(RELEASE).tar $(NAME)-$(VERSION)
+	@bzip2 -f $(NAME)-$(VERSION)-$(RELEASE).tar
 	@rm -rf $(NAME)-$(VERSION)
 	@echo ""
-	@echo "The final archive is in $(NAME)-$(VERSION).tar.bz2"
+	@echo "The final archive is in $(NAME)-$(VERSION)-$(RELEASE).tar.bz2"
 
-archive: check clean tag create-archive
+archive: check clean commit tag create-archive
 
 upload:
-	@scp ${NAME}-$(VERSION).tar.bz2 fedorahosted.org:$(NAME)
+	@scp ${NAME}-$(VERSION)-$(RELEASE).tar.bz2 fedorahosted.org:$(NAME)
 
 dummy:
 
@@ -91,4 +96,4 @@ new-pci-ids:
 	@curl -O http://pciids.sourceforge.net/pci.ids
 
 new-oui.txt:
-	@curl -O http://standards.ieee.org/regauth/oui/oui.txt
+	@curl -O http://standards.ieee.org/develop/regauth/oui/oui.txt

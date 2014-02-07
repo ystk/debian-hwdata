@@ -1,3 +1,27 @@
+hwdata (0.234-1) unstable; urgency=low
+
+  * new upstream release from 2012-05-18
+  * added patch from Martin Pitt <martin.pitt@ubuntu.com>
+    which links the files usb.ids and pci.ids to the ones from the
+    packages usbutils and pciutils where they are newer. Thanks a lot!
+    closes: Bug#635302 and LP: #77929
+  * debian/control added usbutils and pciutils dependecy
+  * debian/control updated Standards-Version, no changes needed
+  * removed debian/README.build because no need for updating usb.ids
+    anymore
+
+ -- Noël Köthe <noel@debian.org>  Sun, 08 Jul 2012 01:57:32 +0200
+
+hwdata (0.233-1) unstable; urgency=low
+
+  * new upstream version
+  * updated usb.ids
+  * updated Standards-Version
+  * fixed lintian warning debian-rules-missing-recommended-target
+  * debian/rules dh_clean -k -> dh_prep
+
+ -- Noël Köthe <noel@debian.org>  Sun, 24 Jul 2011 10:46:26 +0200
+
 hwdata (0.230-1) unstable; urgency=low
 
   * new upstream release from git
