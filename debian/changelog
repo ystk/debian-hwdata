@@ -1,3 +1,10 @@
+hwdata (0.249-1) unstable; urgency=low
+
+  * latest upstream release from 2013-06-20
+    - upstream removed upgradelist, MonitorDB, videodrivers
+
+ -- Noël Köthe <noel@debian.org>  Mon, 12 Aug 2013 14:36:31 +0200
+
 hwdata (0.234-1) unstable; urgency=low
 
   * new upstream release from 2012-05-18

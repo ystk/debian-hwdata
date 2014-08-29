@@ -1,38 +1,28 @@
-NAME=$(shell awk '/Name:/ { print $$2 }' hwdata.spec)
+NAME=hwdata
 VERSION=$(shell awk '/Version:/ { print $$2 }' hwdata.spec)
-RELEASE=$(shell rpm -q --specfile --qf "%{release}" hwdata.spec)
+RELEASE=$(shell rpm -q --define 'dist %{nil}' --specfile --qf "%{release}" hwdata.spec)
 SOURCEDIR := $(shell pwd)
 
-prefix=$(DESTDIR)/usr
-sysconfdir=$(DESTDIR)/etc
-bindir=$(prefix)/bin
-sbindir=$(prefix)/sbin
-datadir=$(prefix)/share
-mandir=$(datadir)/man
-includedir=$(prefix)/include
-libdir=$(prefix)/lib
-
-CC=gcc
-CFLAGS=$(RPM_OPT_FLAGS) -g
+include Makefile.inc
 
 CVSROOT = $(shell cat CVS/Root 2>/dev/null || :)
 
 CVSTAG = $(NAME)-r$(subst .,-,$(VERSION))
 
-FILES = MonitorsDB pci.ids upgradelist usb.ids videodrivers oui.txt pnp.ids
+FILES = pci.ids usb.ids oui.txt pnp.ids
 
-.PHONY: all install tag force-tag check commit create-archive archive srpm-x clean clog new-pci-ids new-usb-ids
+.PHONY: all install tag force-tag check commit create-archive archive srpm-x \
+    clean clog new-pci-ids new-usb-ids new-pnp-ids
 
 all: 
 
 install:
-	mkdir -p -m 755 $(datadir)/$(NAME)
+	mkdir -p -m 755 $(DESTDIR)$(datadir)/$(NAME)
 	for foo in $(FILES) ; do \
-		install -m 644 $$foo $(datadir)/$(NAME) ;\
+		install -m 644 $$foo $(DESTDIR)$(datadir)/$(NAME) ;\
 	done
-	mkdir -p -m 755 $(datadir)/$(NAME)/videoaliases
-	mkdir -p -m 755 $(sysconfdir)/modprobe.d
-	install -m 644 blacklist.conf $(sysconfdir)/modprobe.d
+	mkdir -p -m 755 $(DESTDIR)$(prefix)/lib/modprobe.d
+	install -m 644 -T blacklist.conf $(DESTDIR)$(prefix)/lib/modprobe.d/dist-blacklist.conf
 
 commit:
 	git commit -a ||:
@@ -54,25 +44,23 @@ check:
 	@./check-pci-ids.py || { echo "FAILURE: ./check-pci-ids.py"; exit 1; } && echo "OK: ./check-pci-ids.py"
 	@echo -n "CHECK date of pci.ids: "; grep "Date:" pci.ids | cut -d ' ' -f 5
 	@echo -n "CHECK date of usb.ids: "; grep "Date:" usb.ids | cut -d ' ' -f 6
-	@: videodrivers is tab-separated
-	@[ `grep -vc '	' videodrivers` -eq 0 ] || { echo "FAILURE: videodrivers not TAB separated"; exit 1; } && echo "OK: videodrivers"
 
 create-archive:
-	@rm -rf $(NAME)-$(VERSION) $(NAME)-$(VERSION)-$(RELEASE).tar*  2>/dev/null
+	@rm -rf $(NAME)-$(VERSION) $(NAME)-$(VERSION).tar*  2>/dev/null
 	@make changelog
-	@git archive --format=tar --prefix=$(NAME)-$(VERSION)/ HEAD > $(NAME)-$(VERSION)-$(RELEASE).tar
+	@git archive --format=tar --prefix=$(NAME)-$(VERSION)/ HEAD > $(NAME)-$(VERSION).tar
 	@mkdir $(NAME)-$(VERSION)
 	@cp ChangeLog $(NAME)-$(VERSION)/
-	@tar --append -f $(NAME)-$(VERSION)-$(RELEASE).tar $(NAME)-$(VERSION)
-	@bzip2 -f $(NAME)-$(VERSION)-$(RELEASE).tar
+	@tar --append -f $(NAME)-$(VERSION).tar $(NAME)-$(VERSION)
+	@bzip2 -f $(NAME)-$(VERSION).tar
 	@rm -rf $(NAME)-$(VERSION)
 	@echo ""
-	@echo "The final archive is in $(NAME)-$(VERSION)-$(RELEASE).tar.bz2"
+	@echo "The final archive is in $(NAME)-$(VERSION).tar.bz2"
 
 archive: check clean commit tag create-archive
 
 upload:
-	@scp ${NAME}-$(VERSION)-$(RELEASE).tar.bz2 fedorahosted.org:$(NAME)
+	@scp ${NAME}-$(VERSION).tar.bz2 fedorahosted.org:$(NAME)
 
 dummy:
 
@@ -82,12 +70,12 @@ srpm-x: create-archive
 	@echo SRPM is: $(NAME)-$(VERSION)-$(RELEASE).src.rpm
 
 clean:
-	@rm -f $(NAME)-*.gz $(NAME)-*.src.rpm
+	@rm -f $(NAME)-*.gz $(NAME)-*.src.rpm new-pnp.xlsx pnp.ids.txt
 
 clog: hwdata.spec
 	@sed -n '/^%changelog/,/^$$/{/^%/d;/^$$/d;s/%%/%/g;p}' $< | tee $@
 
-download: new-usb-ids new-pci-ids new-oui.txt
+download: new-usb-ids new-pci-ids new-oui.txt new-pnp-ids
 
 new-usb-ids:
 	@curl -O http://www.linux-usb.org/usb.ids
@@ -97,3 +85,22 @@ new-pci-ids:
 
 new-oui.txt:
 	@curl -O http://standards.ieee.org/develop/regauth/oui/oui.txt
+
+new-pnp-ids: pnp.ids
+
+pnp.ids: pnp.ids.txt pnp.ids.patch
+	patch -o $@ <pnp.ids.patch
+
+pnp.ids.txt: new-pnp.xlsx
+	@unoconv --stdout -f csv $? | \
+	    tr ' ' ' ' | \
+	    sed -n \
+		-e 's/^\s*"\s*\(.*\)\s*"/\1/' \
+		-e 's/\s\{2,\}/ /g' \
+		-e 's/\s*(used as 2nd pnpid)\s*//' \
+		-e 's:^\(.*\)\s*,\s*\([a-zA-Z@]\{3\}\)\s*,\s*\([0-9]\+/[0-9]\+/[0-9]\+\):\2\t\1:p' | \
+	    sed 's/\s*$$//' | sort -u >$@
+
+new-pnp.xlsx:
+	@curl -o $@ \
+	    http://download.microsoft.com/download/7/E/7/7E7662CF-CBEA-470B-A97E-CE7CE0D98DC2/ISA_PNPID_List.xlsx

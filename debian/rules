@@ -41,7 +41,7 @@ install: build
 
 # Build architecture-independent files here.
 binary-indep: build install
-	cp $(CURDIR)/MonitorsDB $(CURDIR)/pnp.ids $(CURDIR)/upgradelist $(CURDIR)/video* $(CURDIR)/debian/hwdata/usr/share/hwdata/
+	cp $(CURDIR)/pnp.ids $(CURDIR)/debian/hwdata/usr/share/hwdata/
 
 	dh_testdir
 	dh_testroot

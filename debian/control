@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Noël Köthe <noel@debian.org>
 Build-Depends: debhelper (>> 5.0.0)
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Homepage: http://git.fedorahosted.org/git/hwdata.git
 
 Package: hwdata
