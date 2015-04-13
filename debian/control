@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Noël Köthe <noel@debian.org>
 Build-Depends: debhelper (>> 5.0.0)
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Homepage: http://git.fedorahosted.org/git/hwdata.git
 
 Package: hwdata
@@ -12,4 +12,4 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, usbutils, pciutils
 Description: hardware identification / configuration data
  This package contains various hardware identification and configuration data,
  such as the pci.ids database, or the XFree86/xorg Cards database.
- It's needed for the kudzu hardware detection.
+ It is needed for the kudzu hardware detection.

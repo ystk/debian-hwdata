@@ -1,3 +1,11 @@
+hwdata (0.267-1) unstable; urgency=medium
+
+  * upstream release from 2014-06-16
+  * debian/watch added
+  * debian/control updated Standard-Version: no changes needed
+
+ -- Noël Köthe <noel@debian.org>  Sun, 24 Aug 2014 01:19:05 +0200
+
 hwdata (0.249-1) unstable; urgency=low
 
   * latest upstream release from 2013-06-20

@@ -1,0 +1,5 @@
+version=3
+opts=uversionmangle=s/^(\d+(?:\.\d+)*)-1$/$1/ \
+https://git.fedorahosted.org/git/hwdata.git \
+(?:|.*/)hwdata(?:[_\-]v?|)(\d[^\s/]*)\.(?:tar\.xz|txz|tar\.bz2|tbz2|tar\.gz|tgz)
+
